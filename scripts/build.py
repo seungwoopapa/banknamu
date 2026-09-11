@@ -4,6 +4,7 @@
 생성물: 홈, 카테고리 6개, 연도별 아카이브, 글 전체, 소개·문의·개인정보처리방침·면책 고지,
 404, sitemap.xml, robots.txt, feed.xml, CNAME, ads.txt(설정 시).
 """
+import hashlib
 import html
 import json
 import re
@@ -156,7 +157,8 @@ def fix_body(body):
 
 
 def post_card(p):
-    thumb = f'<img src="{p["featured"]}" alt="" loading="lazy">' if p.get("featured_ok") else '<span class="thumb-placeholder">B</span>'
+    thumb = (f'<img src="{p["card"]}" alt="{esc(p["title"])}" loading="lazy" width="1200" height="630">'
+             if p.get("card_ok") else '<span class="thumb-placeholder">B</span>')
     return f"""<li class="card">
   <a class="card-thumb" href="/{esc(p['slug'])}/">{thumb}</a>
   <div class="card-body">
@@ -217,10 +219,10 @@ def build_post(i, p):
         "mainEntityOfPage": url_for(f"/{p['slug']}/"),
         "articleSection": p["category"],
     }
-    if p.get("featured_ok"):
-        jsonld["image"] = url_for(p["featured"])
+    if p.get("card_ok"):
+        jsonld["image"] = url_for(p["card"])
     write(f"/{p['slug']}/", layout(p["title"], body, description=p["description"], path=f"/{p['slug']}/",
-                                    og_type="article", og_image=p["featured"] if p.get("featured_ok") else "", jsonld=jsonld))
+                                    og_type="article", og_image=p["card"] if p.get("card_ok") else "", jsonld=jsonld))
 
 
 def build_home():
@@ -311,6 +313,9 @@ def main():
     existing = {p.name for p in (SITE / "images").glob("*")}
     for p in POSTS:
         p["featured_ok"] = bool(p["featured"]) and p["featured"].split("/")[-1] in existing
+        # 카드뉴스 썸네일 (scripts/make_thumbs.py 가 생성)
+        p["card"] = "/images/card/" + hashlib.md5(p["slug"].encode()).hexdigest()[:10] + ".png"
+        p["card_ok"] = (SITE / p["card"].lstrip("/")).exists()
     for i, p in enumerate(POSTS):
         build_post(i, p)
     build_home()
@@ -319,8 +324,8 @@ def main():
     build_pages()
     build_meta()
     n_html = sum(1 for _ in SITE.rglob("*.html"))
-    n_img = sum(1 for _ in (SITE / "images").glob("*"))
-    print(f"built: {n_html} html pages, {n_img} images, featured ok: {sum(p['featured_ok'] for p in POSTS)}/{len(POSTS)}")
+    n_img = sum(1 for _ in (SITE / "images").rglob("*.png"))
+    print(f"built: {n_html} html pages, {n_img} images, 카드 썸네일 {sum(p['card_ok'] for p in POSTS)}/{len(POSTS)}")
 
 
 if __name__ == "__main__":

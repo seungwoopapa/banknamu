@@ -13,6 +13,7 @@ content/posts.json     추출된 글 (제목·작성일·카테고리·본문 HT
 pages/                 소개·문의·개인정보처리방침·면책 고지·홈 소개글 (직접 수정 가능)
 static/                CSS, 파비콘, 기본 OG 이미지
 scripts/extract.py     raw -> content/posts.json
+scripts/make_thumbs.py content/posts.json -> docs/images/card/ (제목이 들어간 카드뉴스 썸네일)
 scripts/build.py       content + pages + static -> docs/ (전체 HTML, sitemap, robots, feed, CNAME, ads.txt)
 docs/                  배포 산출물 (GitHub Pages 가 서빙)
 ```
@@ -23,6 +24,7 @@ docs/                  배포 산출물 (GitHub Pages 가 서빙)
 
 ```bash
 python3 scripts/extract.py        # 글 재추출 (raw/ 가 있을 때만 필요)
+python3 scripts/make_thumbs.py    # 카드 썸네일 재생성 (제목을 고쳤을 때만 필요)
 python3 scripts/build.py          # docs/ 재생성
 ```
 
@@ -42,4 +44,5 @@ python3 scripts/build.py && git add -A && git commit -m "update" && git push
 - 글 본문은 아카이브 원문 그대로입니다. 광고 코드·목차 플러그인·lazy-load 껍데기만 걷어냈습니다.
 - 모든 글 상단에 원래 작성일과 "작성 시점 기준" 안내를 넣었습니다. 낡은 수치를 본문에서 고치지는 않았습니다.
 - 아카이브에 이미지가 하나도 없어(wp-content/uploads 미캡처) 본문 이미지는 모두 뺐습니다. 깨진 이미지는 없습니다.
+- 대신 글마다 제목·카테고리·작성 시점을 담은 카드뉴스 형식 썸네일을 생성했습니다(`docs/images/card/`). 목록 썸네일과 `og:image` 에 같은 파일을 씁니다. macOS 의 `qlmanage`·`sips` 로 렌더하므로 맥에서만 재생성됩니다.
 - 카테고리는 옛 글의 `category-xxx` 클래스에서 그대로 복원했습니다.
