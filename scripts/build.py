@@ -131,7 +131,11 @@ def fix_body(body):
         block = m.group(0)
         imgs = re.findall(r"<img\b[^>]*>", block)
         if imgs and not any(img_ok(i) for i in imgs):
-            return ""
+            # 표(관련 글 링크 카드 등)가 든 figure 는 이미지만 빼고 남긴다
+            if "<table" not in block:
+                return ""
+            block = re.sub(r"<img\b[^>]*>", "", block)
+            block = re.sub(r"<td>\s*(?:<a[^>]*>\s*</a>)?\s*</td>", "", block)
         return block
     body = re.sub(r"<figure\b[^>]*>.*?</figure>", fig, body, flags=re.S)
     body = re.sub(r"<img\b[^>]*>", lambda m: (m.group(0)[:-1].rstrip("/") + ' loading="lazy">') if img_ok(m.group(0)) else "", body)
