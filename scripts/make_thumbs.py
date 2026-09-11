@@ -87,6 +87,20 @@ def title_layout(title: str):
     return 48, wrap(title, 48, avail, 5)
 
 
+def stamp(post) -> str:
+    """카드 하단에 넣을 시점 문구.
+
+    해를 넘겨 갱신한 글은 작성 시점을 적으면 제목과 어긋나 보인다
+    (제목은 2026년인데 카드에는 2023년 작성이라고 뜨는 식).
+    같은 해 안의 사소한 수정까지 갱신으로 표시하면 오히려 지저분해서,
+    연도가 바뀐 경우에만 갱신으로 적는다.
+    """
+    pub, mod = post["published"], post.get("modified") or post["published"]
+    if mod[:4] != pub[:4]:
+        return f"{kmonth(mod)} 갱신"
+    return f"{kmonth(pub)} 작성"
+
+
 def kmonth(iso: str) -> str:
     y, m, _ = iso.split("-")
     return f"{y}년 {int(m)}월"
@@ -116,7 +130,7 @@ def svg_for(post) -> str:
 <text x="{W - PAD - pill_w / 2}" y="96" text-anchor="middle" font-family="{FONT}" font-size="28" font-weight="700" fill="{color}">{cat}</text>
 {tspans}
 <rect x="{x}" y="{H - 108}" width="64" height="5" rx="2.5" fill="{color}"/>
-<text x="{x}" y="{H - 56}" font-family="{FONT}" font-size="27" fill="#5f6b7a">{kmonth(post["published"])} 작성 · {CONF["domain"]}</text>'''
+<text x="{x}" y="{H - 56}" font-family="{FONT}" font-size="27" fill="#5f6b7a">{stamp(post)} · {CONF["domain"]}</text>'''
 
 
 def main():
